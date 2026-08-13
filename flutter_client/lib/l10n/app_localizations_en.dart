@@ -136,6 +136,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get multiviewRemove => 'Remove from Multiview';
 
   @override
+  String get multiviewRetry => 'Couldn\'t play — select to retry';
+
+  @override
   String get catchupBadgeAvailable => 'Catchup available';
 
   @override
