@@ -7,6 +7,7 @@ import 'package:m3u_tv/features/multiview/multiview_controller.dart';
 import 'package:m3u_tv/features/multiview/multiview_grid_math.dart';
 import 'package:m3u_tv/features/player/playback_controls.dart'
     show isHandheldLayout;
+import 'package:m3u_tv/features/player/wakelock_controller.dart';
 import 'package:m3u_tv/l10n/app_localizations.dart';
 import 'package:m3u_tv/navigation/app_router.dart';
 import 'package:m3u_tv/navigation/content_actions.dart';
@@ -36,7 +37,12 @@ enum _LayoutMode { grid, featured, pip }
 /// second native player on top of a grid tile's own was crashing/freezing
 /// playback on multiple platforms.
 class MultiviewScreen extends ConsumerStatefulWidget {
-  const MultiviewScreen({super.key});
+  const MultiviewScreen({
+    this.wakelockController = const PlatformWakelockController(),
+    super.key,
+  });
+
+  final WakelockController wakelockController;
 
   @override
   ConsumerState<MultiviewScreen> createState() => _MultiviewScreenState();
@@ -85,6 +91,11 @@ class _MultiviewScreenState extends ConsumerState<MultiviewScreen> {
   @override
   void initState() {
     super.initState();
+    // Held for as long as the grid is up, paused or not, like PlayerScreen:
+    // the grid is rendered through Flutter textures/platform views, so the
+    // OS can't tell video is on screen and would otherwise run the
+    // screensaver and sleep timer over live streams.
+    unawaited(widget.wakelockController.enable());
     for (final channel in ref.read(multiviewChannelsProvider)) {
       _openTile(channel);
     }
@@ -106,6 +117,7 @@ class _MultiviewScreenState extends ConsumerState<MultiviewScreen> {
 
   @override
   void dispose() {
+    unawaited(widget.wakelockController.disable());
     if (_lockedLandscapeForHandheld) {
       unawaited(
         SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]),
