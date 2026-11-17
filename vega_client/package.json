@@ -14,8 +14,9 @@
     "build:release": "react-native build-vega --build-type Release",
     "build:app": "npm-run-all build:release build:debug",
     "vvd:start": "vega virtual-device start",
-    "vvd:run": "vega run-app build/x86_64-release/m3utv_x86_64.vpkg dev.sparkison.tv.main -d VirtualDevice",
-    "device:install": "vega device install-app --packagePath build/armv7-release/m3utv_armv7.vpkg",
+    "vvd:run": "vega run-app build/x86_64-release/m3utv-vega_x86_64.vpkg dev.sparkison.tv.main -d VirtualDevice",
+    "vvd:run:arm": "vega run-app build/aarch64-release/m3utv-vega_aarch64.vpkg dev.sparkison.tv.main -d VirtualDevice",
+    "device:install": "vega device install-app --packagePath build/armv7-release/m3utv-vega_armv7.vpkg",
     "device:launch": "vega device launch-app --appName dev.sparkison.tv.main",
     "logs": "vega device start-log-stream"
   },

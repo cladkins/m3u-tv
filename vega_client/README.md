@@ -75,11 +75,17 @@ Builds land in `build/<arch>-release/`:
 npm run vvd:start
 ```
 
+On Linux or an Intel Mac:
+
 ```bash
 npm run vvd:run
 ```
 
-On Apple Silicon, use the `aarch64` package path instead of the one in `vvd:run`.
+On Apple Silicon:
+
+```bash
+npm run vvd:run:arm
+```
 
 ### Fire TV Stick
 
