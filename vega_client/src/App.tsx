@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Loading } from './components/common';
 import { Sidebar } from './components/Sidebar';
 import { RouterProvider, ScreenKeyProvider, StackRoute, TabName, useRouter } from './navigation/Router';
@@ -85,7 +85,6 @@ function Root() {
 export function App() {
   return (
     <View style={styles.app}>
-      <StatusBar hidden />
       <AppProvider>
         <RouterProvider>
           <Root />
