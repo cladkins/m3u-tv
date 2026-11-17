@@ -44,10 +44,12 @@ Cross-platform TV front-end player for the [M3U Editor web app](https://github.c
 | Apple TV (tvOS) | Native mpv (MPVKit), with an AVKit fallback for unsupported media |
 | Desktop (Linux / Windows) | libmpv (in-process) |
 | Desktop (macOS) | Native mpv (MPVKit) |
+| Fire TV (Vega OS) | Separate React Native for Vega app in `vega_client/`: W3C Media with Shaka Player for HLS (preview) |
 
 ## Tech Stack
 
 - [Flutter](https://flutter.dev/) and Dart in `flutter_client/`
+- React Native for Vega (TypeScript) in `vega_client/` for Fire TV devices on Vega OS. See [vega_client/README.md](vega_client/README.md)
 - Flutter widget, service, playback, and migration test suites covering parity behavior
 - In-process playback architecture with platform backend fallbacks documented in `docs/migration/playback-backend-matrix.md`
 

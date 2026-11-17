@@ -5,7 +5,9 @@
 
 ## Project location
 
-All source lives under `flutter_client/`. Run every command from that directory.
+All Flutter source lives under `flutter_client/`. Run every Flutter command from that directory.
+
+`vega_client/` is a separate React Native for Vega (TypeScript) app for Fire TV devices on Vega OS. The Flutter rules below don't apply to it. Run its checks from that directory with `npm run typecheck` and `npm test`, and see `vega_client/README.md`.
 
 ## Context
 

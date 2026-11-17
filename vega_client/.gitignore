@@ -1,0 +1,6 @@
+node_modules/
+build/
+.shaka/
+src/vendor/
+*.vpkg
+.DS_Store

@@ -1,0 +1,60 @@
+{
+  "name": "m3utv-vega",
+  "version": "0.1.0",
+  "private": true,
+  "description": "M3U TV client for Amazon Vega OS (Fire TV)",
+  "license": "GPL-3.0-only",
+  "scripts": {
+    "postinstall": "bash scripts/setup-shaka.sh",
+    "setup:shaka": "bash scripts/setup-shaka.sh --force",
+    "start": "react-native start",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "build:debug": "react-native build-vega --build-type Debug",
+    "build:release": "react-native build-vega --build-type Release",
+    "build:app": "npm-run-all build:release build:debug",
+    "vvd:start": "vega virtual-device start",
+    "vvd:run": "vega run-app build/x86_64-release/m3utv_x86_64.vpkg dev.sparkison.tv.main -d VirtualDevice",
+    "device:install": "vega device install-app --packagePath build/armv7-release/m3utv_armv7.vpkg",
+    "device:launch": "vega device launch-app --appName dev.sparkison.tv.main",
+    "logs": "vega device start-log-stream"
+  },
+  "dependencies": {
+    "@amazon-devices/react-native-async-storage__async-storage": "~2.1.9000000002",
+    "@amazon-devices/react-native-kepler": "~4.0.2",
+    "@amazon-devices/react-native-w3cmedia": "~2.3.5",
+    "@xmldom/xmldom": "^0.8.10",
+    "base-64": "1.0.0",
+    "fastestsmallesttextencoderdecoder": "1.0.22",
+    "react": "19.2.0",
+    "react-native": "0.83.0"
+  },
+  "devDependencies": {
+    "@amazon-devices/kepler-cli-platform": "~0.22.14",
+    "@babel/core": "^7.25.2",
+    "@babel/plugin-transform-react-jsx": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "20.0.0",
+    "@react-native/babel-preset": "0.83.0",
+    "@react-native/metro-config": "0.83.0",
+    "@react-native/typescript-config": "0.83.0",
+    "@types/base-64": "^1.0.2",
+    "@types/jest": "^29.5.0",
+    "@types/react": "^19.2.0",
+    "babel-jest": "^29.6.3",
+    "jest": "^29.6.3",
+    "npm-run-all": "^4.1.5",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "kepler": {
+    "projectType": "application",
+    "appName": "m3utv",
+    "targets": [
+      "tv"
+    ]
+  }
+}
