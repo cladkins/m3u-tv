@@ -28,12 +28,27 @@ if [[ "${M3UTV_SKIP_SHAKA:-}" == "1" ]]; then
   exit 0
 fi
 
+# Homebrew's openjdk is keg-only, so it isn't on PATH after `brew install`.
+for jdk in /opt/homebrew/opt/openjdk@21 /opt/homebrew/opt/openjdk /usr/local/opt/openjdk@21 /usr/local/opt/openjdk; do
+  if [[ -x "$jdk/bin/java" ]]; then
+    export PATH="$jdk/bin:$PATH"
+    break
+  fi
+done
+
 for tool in git python3 java node npm curl tar; do
   if ! command -v "$tool" >/dev/null 2>&1; then
     echo "Error: $tool is required to build Shaka Player for Vega." >&2
     exit 1
   fi
 done
+
+# macOS ships a /usr/bin/java stub that exists but fails without a JDK.
+if ! java -version >/dev/null 2>&1; then
+  echo "Error: Java 21+ is required to build Shaka Player for Vega, and no Java runtime works." >&2
+  echo "On macOS: brew install openjdk@21" >&2
+  exit 1
+fi
 
 mkdir -p "$WORK"
 cd "$WORK"
