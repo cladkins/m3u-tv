@@ -7,6 +7,7 @@ import { Focusable } from '../components/Focusable';
 import { strings } from '../i18n/strings';
 import { useRouter } from '../navigation/Router';
 import { NowNext } from '../services/epg';
+import { resolveFavoriteChannels } from '../services/favoriteChannels';
 import { readJson, StorageKeys, writeJson } from '../services/storage';
 import { useApp, useSession } from '../state/AppContext';
 import { colors, fontSize, s, spacing } from '../theme';
@@ -18,7 +19,7 @@ const ROW_HEIGHT = s(112);
 const ROW_GAP = s(10);
 
 export function LiveTVScreen() {
-  const { catalog, epg } = useSession();
+  const { client, catalog, epg } = useSession();
   const { liveCategories, favorites, toggleFavorite } = useApp();
   const { push } = useRouter();
   const [categoryId, setCategoryId] = useState<string | null>(null);
@@ -55,8 +56,7 @@ export function LiveTVScreen() {
     setError(null);
     try {
       if (favoriteFilter) {
-        const all = await catalog.liveStreams();
-        setChannels(all.filter((c) => favoriteFilter.has(c.stream_id)));
+        setChannels(await resolveFavoriteChannels(client, catalog, favoriteFilter, setChannels));
       } else {
         setChannels(await catalog.liveStreams(categoryId === ALL_ID ? undefined : categoryId));
       }
@@ -65,7 +65,7 @@ export function LiveTVScreen() {
     } finally {
       setLoading(false);
     }
-  }, [catalog, categoryId, favoriteFilter]);
+  }, [client, catalog, categoryId, favoriteFilter]);
 
   useEffect(() => {
     load();

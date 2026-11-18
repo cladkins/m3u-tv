@@ -13,6 +13,7 @@ interface Entry<T> {
 // one caller that asks for everything.
 export class CatalogCache {
   private entries = new Map<string, Entry<unknown>>();
+  private liveById = new Map<number, LiveStream>();
 
   constructor(private readonly client: XtreamClient) {}
 
@@ -28,7 +29,20 @@ export class CatalogCache {
   }
 
   liveStreams(categoryId?: string, force = false): Promise<LiveStream[]> {
-    return this.memo(`live:${categoryId ?? '*'}`, () => this.client.getLiveStreams(categoryId), force);
+    return this.memo(
+      `live:${categoryId ?? '*'}`,
+      async () => {
+        const list = await this.client.getLiveStreams(categoryId);
+        for (const channel of list) this.liveById.set(Number(channel.stream_id), channel);
+        return list;
+      },
+      force,
+    );
+  }
+
+  // Channels already seen this session, from whichever lists were loaded.
+  knownLive(streamId: number): LiveStream | undefined {
+    return this.liveById.get(streamId);
   }
 
   vodStreams(categoryId?: string, force = false): Promise<VodStream[]> {
@@ -49,5 +63,6 @@ export class CatalogCache {
 
   clear(): void {
     this.entries.clear();
+    this.liveById.clear();
   }
 }

@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LiveStream, Progress } from '../api/types';
+import { Loading } from '../components/common';
 import { HorizontalRow } from '../components/HorizontalRow';
 import { PosterCard } from '../components/PosterCard';
 import { strings } from '../i18n/strings';
 import { useRouter } from '../navigation/Router';
+import { resolveFavoriteChannels } from '../services/favoriteChannels';
 import { useApp, useSession } from '../state/AppContext';
 import { colors, fontSize, s, spacing } from '../theme';
 
@@ -18,6 +20,7 @@ export function HomeScreen() {
   const [recent, setRecent] = useState<Progress[]>([]);
   const [channels, setChannels] = useState<LiveStream[]>([]);
   const [firstCategory, setFirstCategory] = useState<LiveStream[]>([]);
+  const [settled, setSettled] = useState(false);
 
   useEffect(() => {
     if (!activeViewer) return;
@@ -34,32 +37,35 @@ export function HomeScreen() {
   }, [client, activeViewer]);
 
   useEffect(() => {
-    if (favorites.live.size === 0) {
-      setChannels([]);
-      return;
-    }
     let cancelled = false;
-    catalog
-      .liveStreams()
-      .then((all) => {
-        if (!cancelled) setChannels(all.filter((c) => favorites.live.has(c.stream_id)));
+    resolveFavoriteChannels(client, catalog, favorites.live, (partial) => {
+      if (!cancelled) setChannels(partial);
+    })
+      .then((list) => {
+        if (!cancelled) setChannels(list);
       })
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
-  }, [catalog, favorites.live]);
+  }, [client, catalog, favorites.live]);
 
   useEffect(() => {
     const first = liveCategories[0];
-    if (!first) return;
+    if (!first) {
+      setSettled(true);
+      return;
+    }
     let cancelled = false;
     catalog
       .liveStreams(first.category_id)
       .then((list) => {
         if (!cancelled) setFirstCategory(list.slice(0, 30));
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setSettled(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -125,7 +131,12 @@ export function HomeScreen() {
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <Text style={styles.heading}>{strings.navHome}</Text>
-      {isEmpty ? <Text style={styles.empty}>{strings.homeEmpty}</Text> : null}
+      {isEmpty && !settled ? (
+        <View style={styles.loading}>
+          <Loading />
+        </View>
+      ) : null}
+      {isEmpty && settled ? <Text style={styles.empty}>{strings.homeEmpty}</Text> : null}
       <HorizontalRow
         title={strings.homeContinueWatching}
         data={recent}
@@ -189,6 +200,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.lg,
   },
+  loading: { height: s(400) },
   empty: { color: colors.textSecondary, fontSize: fontSize.md, paddingHorizontal: spacing.lg },
   bottomSpace: { height: s(80) },
 });
