@@ -79,6 +79,9 @@ export const strings = {
   settingsSignOut: 'Sign out',
   settingsAbout: 'About',
   settingsAppVersion: 'App version',
+  settingsStorage: 'Saved sign-in',
+  settingsStorageOn: 'Kept on this device',
+  settingsStorageOff: 'Not available. You will need to sign in after each restart.',
 
   playerLoading: 'Loading stream…',
   playerError: 'This stream could not be played.',

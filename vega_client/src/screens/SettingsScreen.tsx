@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppButton, SectionTitle } from '../components/common';
 import { Focusable } from '../components/Focusable';
 import { strings } from '../i18n/strings';
+import { isPersistent } from '../services/storage';
 import { useApp, useSession } from '../state/AppContext';
 import { colors, fontSize, s, spacing } from '../theme';
 
@@ -89,6 +90,10 @@ export function SettingsScreen() {
         <View style={styles.row}>
           <Text style={styles.label}>{strings.settingsAppVersion}</Text>
           <Text style={styles.value}>{APP_VERSION}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>{strings.settingsStorage}</Text>
+          <Text style={styles.value}>{isPersistent() ? strings.settingsStorageOn : strings.settingsStorageOff}</Text>
         </View>
       </View>
     </ScrollView>

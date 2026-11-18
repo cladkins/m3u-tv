@@ -1,6 +1,7 @@
 import { VideoPlayer } from '@amazon-devices/react-native-w3cmedia';
 import { logDecoderSupport } from './capabilities';
 import { probeStream } from './probe';
+import { safeRequire } from '../utils/safeRequire';
 export type EngineEvent = 'timeupdate' | 'playing' | 'pause' | 'waiting' | 'ended' | 'error' | 'loadedmetadata';
 
 let shakaModule: any = null;
@@ -11,17 +12,19 @@ let shakaModule: any = null;
 // Shaka itself is evaluated, since Shaka probes browser globals on load.
 function loadShaka(): any {
   if (shakaModule) return shakaModule;
-  const polyfills = [
-    require('../vendor/shaka/polyfills/DocumentPolyfill'),
-    require('../vendor/shaka/polyfills/ElementPolyfill'),
-    require('../vendor/shaka/polyfills/TextDecoderPolyfill'),
-    require('../vendor/shaka/polyfills/W3CMediaPolyfill'),
-    require('../vendor/shaka/polyfills/MiscPolyfill'),
-    require('../vendor/shaka/polyfills/DOMParserPolyfill'),
-  ];
-  for (const polyfill of polyfills) (polyfill.default ?? polyfill).install();
-  const loaded = require('../vendor/shaka/dist/shaka-player.compiled');
-  const shaka = loaded.default ?? loaded;
+  const shaka = safeRequire(() => {
+    const polyfills = [
+      require('../vendor/shaka/polyfills/DocumentPolyfill'),
+      require('../vendor/shaka/polyfills/ElementPolyfill'),
+      require('../vendor/shaka/polyfills/TextDecoderPolyfill'),
+      require('../vendor/shaka/polyfills/W3CMediaPolyfill'),
+      require('../vendor/shaka/polyfills/MiscPolyfill'),
+      require('../vendor/shaka/polyfills/DOMParserPolyfill'),
+    ];
+    for (const polyfill of polyfills) (polyfill.default ?? polyfill).install();
+    const loaded = require('../vendor/shaka/dist/shaka-player.compiled');
+    return loaded.default ?? loaded;
+  });
   shaka.polyfill.installAll();
   // Shaka's XHR plugin needs browser APIs Vega lacks; route HTTP through fetch.
   for (const scheme of ['http', 'https']) {
