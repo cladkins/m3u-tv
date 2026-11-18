@@ -54,7 +54,7 @@ describe('XtreamClient', () => {
 
   it('builds playback URLs with the session client_id', () => {
     const client = new XtreamClient(creds);
-    expect(client.liveUrl(42)).toMatch(/^http:\/\/tv\.example\.com:36400\/live\/user\/p@ss\/42\.m3u8\?client_id=m3utv-[0-9a-f]{16}$/);
+    expect(client.liveUrl(42)).toMatch(/^http:\/\/tv\.example\.com:36400\/live\/user\/p@ss\/42\.m3u8\?proxy=true&player=true&client_id=m3utv-[0-9a-f]{16}$/);
     expect(client.movieUrl(7, 'mkv')).toMatch(/\/movie\/user\/p@ss\/7\.mkv\?/);
     expect(client.episodeUrl('99')).toMatch(/\/series\/user\/p@ss\/99\.mp4\?/);
   });

@@ -1,4 +1,5 @@
 import { VideoPlayer } from '@amazon-devices/react-native-w3cmedia';
+import { probeStream } from './probe';
 export type EngineEvent = 'timeupdate' | 'playing' | 'pause' | 'waiting' | 'ended' | 'error' | 'loadedmetadata';
 
 let shakaModule: any = null;
@@ -35,13 +36,6 @@ function loadShaka(): any {
   return shaka;
 }
 
-// HLS (live channels, and any .m3u8 VOD) needs MSE through Shaka. Flat files
-// (mp4, mkv, ts) play in the platform's URL mode, which handles them natively.
-export function needsAdaptivePlayer(url: string): boolean {
-  const path = url.split('?')[0].toLowerCase();
-  return path.endsWith('.m3u8') || path.endsWith('.mpd');
-}
-
 export class VideoEngine {
   readonly video = new VideoPlayer();
   private shakaPlayer: any = null;
@@ -63,8 +57,18 @@ export class VideoEngine {
     }
     for (const [event, listener] of this.listeners) this.video.addEventListener(event, listener);
     this.video.autoplay = false;
-    const adaptive = needsAdaptivePlayer(url);
-    console.log(`M3UTV player: opening ${redact(url)} via ${adaptive ? 'Shaka (MSE)' : 'URL mode'}`);
+    const probe = await probeStream(url);
+    if (this.destroyed) return;
+    console.log(
+      `M3UTV player: ${redact(url)} -> HTTP ${probe.status} ${probe.contentType || '(no type)'} at ${redact(probe.url)}`,
+    );
+    if (probe.status >= 400) {
+      this.lastError = `The server returned HTTP ${probe.status} for this stream.`;
+      throw new Error(this.lastError);
+    }
+    url = probe.url;
+    const adaptive = probe.kind !== 'file';
+    console.log(`M3UTV player: playing via ${adaptive ? 'Shaka (MSE)' : 'URL mode'}`);
 
     if (adaptive) {
       const shaka = loadShaka();
@@ -241,7 +245,9 @@ export class VideoEngine {
 }
 
 function redact(url: string): string {
-  return url.replace(/\/(live|movie|series)\/[^/]+\/[^/]+\//, '/$1/<user>/<pass>/');
+  return url
+    .replace(/\/(live|movie|series|timeshift)\/[^/]+\/[^/]+\//, '/$1/<user>/<pass>/')
+    .replace(/([?&](?:username|password|token)=)[^&]*/gi, '$1<redacted>');
 }
 
 const SHAKA_CODES: Record<number, string> = {

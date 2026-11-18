@@ -331,10 +331,15 @@ export class XtreamClient {
   // Credentials go into the path unencoded, matching the Xtream URL scheme the
   // editor serves. client_id lets the editor tie the stream to this session so
   // stopStream() can release the connection slot right away.
+  //
+  // proxy=true&player=true routes the stream through the editor's In-App
+  // Player profile, as the Flutter web build does: Vega plays through MSE like
+  // a browser, so it needs the editor's browser-compatible output (HLS or a
+  // remux) rather than the provider's raw stream meant for VLC or Kodi.
   private playbackUrl(kind: 'live' | 'movie' | 'series', id: number | string, extension: string): string {
     const { server, username, password } = this.credentials;
     const base = server.replace(/\/player_api\.php$/i, '');
-    return `${base}/${kind}/${username}/${password}/${id}.${extension}?client_id=${this.sessionId}`;
+    return `${base}/${kind}/${username}/${password}/${id}.${extension}?proxy=true&player=true&client_id=${this.sessionId}`;
   }
 
   async stopStream(type: PlayableType, streamId: number): Promise<void> {
