@@ -9,12 +9,12 @@ A Fire TV client for [M3U Editor](https://github.com/m3ue/m3u-editor), built for
 - A 3-hour guide grid you can page through
 - Movies and series grids by category, detail pages, and a season and episode picker
 - Continue Watching, synced through your M3U Editor viewer
-- Favorites for channels, movies and series, synced to the server (long-press Select to toggle)
+- Favorites for channels, movies and series, synced to the server (hold Select or press Menu to toggle)
 - Search across channels, movies and series
 - Viewer switching in Settings
 - Player:
-  - HLS live streams through Shaka Player
-  - Movies and episodes play directly through the platform's native URL mode
+  - Streams are requested through M3U Editor's In-App Player profile, and the app follows the editor's redirect to see what comes back
+  - HLS plays through Shaka Player; MPEG-TS feeds, movies and episodes play through the platform's native URL mode
   - Resume, ±10 s seek, and ±30 s skip with the remote's skip keys
   - Up/Down or Channel keys change channel during live playback
 
@@ -34,7 +34,7 @@ Features of the Flutter app that this version doesn't have yet: DVR, multiview, 
   source ~/vega/env
   ```
 
-- To build Shaka Player during `npm install`: git, python3, Java 21+, curl.
+- To build Shaka Player during `npm install`: git, python3, Java 21+, curl. On macOS, `brew install openjdk@21` is enough; the setup script finds it.
 - An M3U Editor server with Enhanced output turned on (Settings → General).
 
 ## Setup
@@ -89,37 +89,74 @@ npm run vvd:run:arm
 
 ### Fire TV Stick
 
+Only sticks that run Vega OS work (Settings → My Fire TV → About shows the OS). Fire OS sticks use the Android build.
+
 1. On the stick, open Settings → My Fire TV → About and press Select on the device name 7 times.
-2. Open Developer Options → Developer Mode and note the code on screen.
-3. On your computer, sign in:
+2. Open Developer Options → Developer Mode, choose Continue, and note the code on screen.
+3. On your computer, sign in with your Amazon developer account:
 
    ```bash
    vega devmode login
    ```
 
-4. Enable the device with the code from step 2:
+4. Enable the device with the code from step 2. The stick reboots:
 
    ```bash
    vega devmode enable-device --code <code>
    ```
 
-5. Install the app:
+5. On the stick, set Developer Options → Connection Mode to TCP/IP, and look up its address under My Fire TV → About → Network.
+6. Connect. The computer and the stick must be able to reach each other, which hotel and guest Wi-Fi usually block; a phone hotspot works:
 
    ```bash
-   npm run device:install
+   vega exec vda connect <ip>:5555
    ```
 
-6. Launch it:
+7. Find the device id. It is the first column, for example `192.168.1.50:5555`:
 
    ```bash
-   npm run device:launch
+   vega device list
    ```
 
-To stream logs:
+8. Install and launch:
+
+   ```bash
+   vega device install-app --packagePath build/armv7-release/m3utv-vega_armv7.vpkg -d <device-id>
+   ```
+
+   ```bash
+   vega device launch-app --appName dev.sparkison.tv.main -d <device-id>
+   ```
+
+To stream the system log:
 
 ```bash
-npm run logs -- --device <serial>
+vega device start-log-stream --device <device-id>
 ```
+
+### Debugging
+
+Release builds have no JavaScript console, and an uncaught error closes the app. For app logs, use the debug build with Metro:
+
+```bash
+npm run build:debug
+```
+
+```bash
+npm start
+```
+
+In a second terminal, forward Metro's port and run the debug package (`aarch64` on Apple Silicon, `x86_64` otherwise):
+
+```bash
+vega device start-port-forwarding --device VirtualDevice -p 8081 --forward false
+```
+
+```bash
+vega run-app build/aarch64-debug/m3utv-vega_aarch64.vpkg dev.sparkison.tv.main -d VirtualDevice
+```
+
+Press `j` in the Metro terminal to open DevTools. The app's own messages start with `M3UTV`.
 
 ## Checks
 
@@ -149,4 +186,6 @@ npm test
 - The layout uses 1920×1080 design pixels and scales them with `s()` in `src/theme`, because Vega lays out React Native 0.83 on a 960×540 dp canvas.
 - The player is released when the app goes to the background, as Amazon's certification requires.
 - Credentials are stored in AsyncStorage (the app's private storage, not encrypted).
+- Keep the `@amazon-devices/*` version ranges in `package.json` as Amazon documents them (`~2.1.0` for AsyncStorage, for example). The SDK matches the written range against its own compatibility table and skips linking a library's native half when the range names a patch it doesn't know. The symptom is `NativeModule: AsyncStorage is null`; the build log shows `Skipping module lineage` and a `needs:` list without the library.
+- The Virtual Device decodes fewer formats than Fire TV hardware. Channels with Dolby AC-3 audio don't start there but play on a stick.
 - The package id matches the Android app (`dev.sparkison.tv`), so the Vega build can ship as a separate release track on the existing Appstore listing.
