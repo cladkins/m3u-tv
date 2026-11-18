@@ -1,4 +1,5 @@
 import { VideoPlayer } from '@amazon-devices/react-native-w3cmedia';
+import { logDecoderSupport } from './capabilities';
 import { probeStream } from './probe';
 export type EngineEvent = 'timeupdate' | 'playing' | 'pause' | 'waiting' | 'ended' | 'error' | 'loadedmetadata';
 
@@ -49,6 +50,7 @@ export class VideoEngine {
   private started = false;
 
   async open(url: string, startPosition?: number): Promise<void> {
+    logDecoderSupport();
     await this.video.initialize();
     this.initialized = true;
     if (this.destroyed) {
