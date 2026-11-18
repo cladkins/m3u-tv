@@ -1,7 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTVEventHandler } from '@amazon-devices/react-native-kepler';
 import { Loading } from './components/common';
 import { Sidebar } from './components/Sidebar';
+import { handleRemoteEvent } from './navigation/longPress';
 import { RouterProvider, ScreenKeyProvider, StackRoute, TabName, useRouter } from './navigation/Router';
 import { GuideScreen } from './screens/GuideScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -77,6 +79,7 @@ function Shell() {
 
 function Root() {
   const { status } = useApp();
+  useTVEventHandler(handleRemoteEvent);
   if (status === 'booting') return <Loading />;
   if (status === 'signedOut') return <LoginScreen />;
   return <Shell />;

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Category, Series, VodStream } from '../api/types';
 import { CategoryBar, CategoryOption } from '../components/CategoryBar';
 import { EmptyState, Loading } from '../components/common';
@@ -8,7 +8,7 @@ import { PosterGrid } from '../components/PosterGrid';
 import { strings } from '../i18n/strings';
 import { useRouter } from '../navigation/Router';
 import { useApp, useSession } from '../state/AppContext';
-import { spacing } from '../theme';
+import { colors, fontSize, spacing } from '../theme';
 import { yearOf } from '../utils/text';
 
 const FAVORITES_ID = '__favorites__';
@@ -92,6 +92,7 @@ function BrowseGrid<T>({
   return (
     <View style={styles.root}>
       <CategoryBar options={options} selectedId={categoryId} onSelect={setCategoryId} />
+      <Text style={styles.hint}>{strings.favoriteHint}</Text>
       {loading ? (
         <Loading />
       ) : error ? (
@@ -160,4 +161,5 @@ const seriesSubtitle = (s: Series) => yearOf(s.year ?? s.releaseDate ?? s.releas
 
 const styles = StyleSheet.create({
   root: { flex: 1, paddingTop: spacing.md },
+  hint: { color: colors.textTertiary, fontSize: fontSize.xs, paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
 });

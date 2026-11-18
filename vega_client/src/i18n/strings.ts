@@ -20,6 +20,7 @@ export const strings = {
   unfavorite: 'Remove favorite',
   all: 'All',
   favorites: 'Favorites',
+  favoriteHint: 'Hold Select or press Menu (☰) to add or remove a favorite',
   noItems: 'Nothing here yet.',
   noProgramInfo: 'No program info',
   next: 'Next',

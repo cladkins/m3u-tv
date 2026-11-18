@@ -21,6 +21,7 @@ const memoryStore: Store = {
 };
 
 let store: Store | null = null;
+let loadError: string | null = null;
 
 // Vega links this package name (an npm alias of Amazon's port, see
 // package.json) to the copy built into the OS. The module throws on load when
@@ -34,7 +35,8 @@ function getStore(): Store {
     store = (loaded.default ?? loaded) as Store;
     console.log('M3UTV storage: persistent storage ready');
   } catch (e) {
-    console.warn(`M3UTV storage unavailable, settings won't persist: ${e instanceof Error ? e.message : e}`);
+    loadError = (e instanceof Error ? e.message : String(e)).split('\n')[0];
+    console.warn(`M3UTV storage unavailable, settings won't persist: ${loadError}`);
     store = memoryStore;
   }
   return store;
@@ -42,6 +44,11 @@ function getStore(): Store {
 
 export function isPersistent(): boolean {
   return getStore() !== memoryStore;
+}
+
+export function storageError(): string | null {
+  getStore();
+  return loadError;
 }
 
 export async function readJson<T>(key: string): Promise<T | null> {

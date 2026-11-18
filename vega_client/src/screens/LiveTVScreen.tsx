@@ -122,6 +122,7 @@ export function LiveTVScreen() {
   return (
     <View style={styles.root}>
       <CategoryBar options={options} selectedId={categoryId ?? ''} onSelect={selectCategory} />
+      <Text style={styles.hint}>{strings.favoriteHint}</Text>
       {loading ? (
         <Loading />
       ) : error ? (
@@ -217,6 +218,7 @@ const ChannelRow = memo(function ChannelRow({
 
 const styles = StyleSheet.create({
   root: { flex: 1, paddingTop: spacing.md },
+  hint: { color: colors.textTertiary, fontSize: fontSize.xs, paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   listContent: { paddingHorizontal: spacing.lg, paddingBottom: s(80) },
   row: {
     height: ROW_HEIGHT,
