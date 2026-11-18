@@ -60,7 +60,7 @@ export class VideoEngine {
     const probe = await probeStream(url);
     if (this.destroyed) return;
     console.log(
-      `M3UTV player: ${redact(url)} -> HTTP ${probe.status} ${probe.contentType || '(no type)'} at ${redact(probe.url)}`,
+      `M3UTV player: ${redact(url)} -> HTTP ${probe.status} ${probe.contentType || '(no type)'} after ${probe.hops} redirect(s) at ${redact(probe.url)}`,
     );
     if (probe.status >= 400) {
       this.lastError = `The server returned HTTP ${probe.status} for this stream.`;
