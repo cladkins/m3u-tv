@@ -19,6 +19,10 @@ export interface AuthResponse {
   m3u_editor?: {
     version?: string;
     features?: string[];
+    proxy?: {
+      forced?: boolean;
+      profiles?: Array<{ id: number; name?: string; format?: string | null }>;
+    };
   };
   error?: string;
 }

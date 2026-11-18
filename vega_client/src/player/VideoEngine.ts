@@ -56,6 +56,12 @@ export class VideoEngine {
       return;
     }
     for (const [event, listener] of this.listeners) this.video.addEventListener(event, listener);
+    for (const event of ['loadedmetadata', 'playing', 'waiting', 'ended', 'error']) {
+      this.video.addEventListener(event, () => {
+        const detail = event === 'error' ? ` ${this.errorMessage ?? ''}` : '';
+        console.log(`M3UTV player: media event ${event}${detail}`);
+      });
+    }
     this.video.autoplay = false;
     const probe = await probeStream(url);
     if (this.destroyed) return;

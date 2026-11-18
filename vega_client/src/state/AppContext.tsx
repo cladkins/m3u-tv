@@ -101,6 +101,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     async (credentials: Credentials) => {
       const client = new XtreamClient(credentials);
       const auth = await client.authenticate();
+      const proxy = auth.m3u_editor?.proxy;
+      console.log(
+        `M3UTV server: m3u-editor ${auth.m3u_editor?.version ?? '?'}, proxy forced=${!!proxy?.forced}, profiles=${
+          (proxy?.profiles ?? []).map((p) => `${p.id}:${p.name}(${p.format ?? '?'})`).join(', ') || 'none'
+        }`,
+      );
       await loadCategories(client);
       await writeJson(StorageKeys.credentials, client.credentials);
       setSession({ client, catalog: new CatalogCache(client), epg: new EpgStore(client), auth });
