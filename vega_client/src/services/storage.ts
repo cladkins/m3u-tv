@@ -1,4 +1,7 @@
-import AsyncStorage from '@amazon-devices/react-native-async-storage__async-storage';
+// Vega maps this package name (an npm alias of Amazon's port) to the copy
+// built into the OS. Importing the @amazon-devices name directly bundles a
+// second copy that can't reach the native module and throws on load.
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const StorageKeys = {
   credentials: 'm3ue_tv_credentials',
