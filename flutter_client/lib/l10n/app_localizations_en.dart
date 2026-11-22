@@ -45,6 +45,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appBackToExit => 'Press back again to exit';
 
   @override
+  String get appDeepLinkNotFoundTitle => 'Couldn\'t open link';
+
+  @override
+  String get appDeepLinkNotFoundBody =>
+      'This channel or title isn\'t in your current playlist.';
+
+  @override
   String get appRecordingScheduling => 'Recording is being scheduled…';
 
   @override

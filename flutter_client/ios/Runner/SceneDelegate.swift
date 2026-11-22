@@ -26,6 +26,17 @@ class SceneDelegate: FlutterSceneDelegate {
             window.makeKeyAndVisible()
         }
         super.scene(scene, willConnectTo: session, options: connectionOptions)
+        if let url = connectionOptions.urlContexts.first?.url {
+            DeepLinkChannel.shared.open(url)
+        }
+    }
+
+    /// An `m3utv://` link opened while the app is running.
+    override func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {
+        super.scene(scene, openURLContexts: URLContexts)
+        if let url = URLContexts.first?.url {
+            DeepLinkChannel.shared.open(url)
+        }
     }
 
     /// The engine outlives this window (CarPlay may still be using it); let

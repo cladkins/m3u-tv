@@ -176,6 +176,18 @@ abstract class AppLocalizations {
   /// **'Press back again to exit'**
   String get appBackToExit;
 
+  /// No description provided for @appDeepLinkNotFoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open link'**
+  String get appDeepLinkNotFoundTitle;
+
+  /// No description provided for @appDeepLinkNotFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This channel or title isn\'t in your current playlist.'**
+  String get appDeepLinkNotFoundBody;
+
   /// No description provided for @appRecordingScheduling.
   ///
   /// In en, this message translates to:

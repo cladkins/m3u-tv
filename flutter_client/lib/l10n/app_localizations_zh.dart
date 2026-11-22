@@ -45,6 +45,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appBackToExit => '再次按返回键退出';
 
   @override
+  String get appDeepLinkNotFoundTitle => '无法打开链接';
+
+  @override
+  String get appDeepLinkNotFoundBody => '当前播放列表中没有此频道或影片。';
+
+  @override
   String get appRecordingScheduling => '正在安排录制…';
 
   @override

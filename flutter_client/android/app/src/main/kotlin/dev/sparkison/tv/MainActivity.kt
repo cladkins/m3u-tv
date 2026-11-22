@@ -2,6 +2,7 @@ package dev.sparkison.tv
 
 import android.app.PictureInPictureParams
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
@@ -30,6 +31,11 @@ class MainActivity : FlutterActivity() {
     private var mpvPlugin: MpvPlayerPlugin? = null
     private var systemUiChannel: MethodChannel? = null
     private var textInputChannel: MethodChannel? = null
+    private var deepLinkChannel: MethodChannel? = null
+
+    // An m3utv:// link Dart has not taken yet: it can arrive before Dart
+    // listens (a cold start). See lib/services/deep_link_service.dart.
+    private var pendingDeepLink: String? = null
 
     // Mirrors the Dart-side player route (set via applySystemUiPolicy) so
     // onUserLeaveHint knows whether leaving the app should enter PiP.
@@ -75,6 +81,32 @@ class MainActivity : FlutterActivity() {
         // launch theme behind the (still opaque) system bars for one frame.
         applySystemUiPolicy("browsing")
         if (isTelevisionDevice()) installTextEditorProxy()
+        // Not on a restore or a relaunch from Recents: both hand back the
+        // intent the activity first started with.
+        val fromHistory = intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
+        if (savedInstanceState == null && !fromHistory) deliverDeepLink(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        deliverDeepLink(intent)
+    }
+
+    private fun deliverDeepLink(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_VIEW) return
+        val data = intent.data ?: return
+        if (!data.scheme.equals(DEEP_LINK_SCHEME, ignoreCase = true)) return
+        val link = data.toString()
+        pendingDeepLink = link
+        deepLinkChannel?.invokeMethod("onLink", link, object : MethodChannel.Result {
+            override fun success(result: Any?) {
+                if (pendingDeepLink == link) pendingDeepLink = null
+            }
+
+            override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {}
+
+            override fun notImplemented() {}
+        })
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean =
@@ -191,6 +223,17 @@ class MainActivity : FlutterActivity() {
                 }
             }
         }
+        deepLinkChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, DEEP_LINK_CHANNEL).also { channel ->
+            channel.setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "getInitialLink" -> {
+                        result.success(pendingDeepLink)
+                        pendingDeepLink = null
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+        }
     }
 
     override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
@@ -204,6 +247,8 @@ class MainActivity : FlutterActivity() {
         systemUiChannel = null
         textInputChannel?.setMethodCallHandler(null)
         textInputChannel = null
+        deepLinkChannel?.setMethodCallHandler(null)
+        deepLinkChannel = null
         super.cleanUpFlutterEngine(flutterEngine)
     }
 
@@ -279,5 +324,7 @@ class MainActivity : FlutterActivity() {
         private var currentMpvPlugin: MpvPlayerPlugin? = null
         private const val SYSTEM_UI_CHANNEL = "m3u_tv/system_ui"
         private const val TEXT_INPUT_CHANNEL = "m3u_tv/text_input"
+        private const val DEEP_LINK_CHANNEL = "m3u_tv/deep_link"
+        private const val DEEP_LINK_SCHEME = "m3utv"
     }
 }

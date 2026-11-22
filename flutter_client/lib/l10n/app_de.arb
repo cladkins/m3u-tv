@@ -12,6 +12,8 @@
   "navMore": "Mehr",
   "notificationsDesktopOpen": "Öffnen",
   "appBackToExit": "Zum Beenden erneut Zurück drücken",
+  "appDeepLinkNotFoundTitle": "Link konnte nicht geöffnet werden",
+  "appDeepLinkNotFoundBody": "Dieser Sender oder Titel ist nicht in Ihrer aktuellen Playlist.",
   "appRecordingScheduling": "Aufnahme wird geplant…",
   "appRecordingScheduled": "Aufnahme geplant: {title}",
   "@appRecordingScheduled": {

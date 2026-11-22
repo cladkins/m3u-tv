@@ -45,6 +45,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get appBackToExit => 'Pulse atrás de nuevo para salir';
 
   @override
+  String get appDeepLinkNotFoundTitle => 'No se pudo abrir el enlace';
+
+  @override
+  String get appDeepLinkNotFoundBody =>
+      'Este canal o título no está en su lista de reproducción actual.';
+
+  @override
   String get appRecordingScheduling => 'Grabación en programación…';
 
   @override

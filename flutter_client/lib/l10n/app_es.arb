@@ -12,6 +12,8 @@
   "navMore": "Más",
   "notificationsDesktopOpen": "Abrir",
   "appBackToExit": "Pulse atrás de nuevo para salir",
+  "appDeepLinkNotFoundTitle": "No se pudo abrir el enlace",
+  "appDeepLinkNotFoundBody": "Este canal o título no está en su lista de reproducción actual.",
   "appRecordingScheduling": "Grabación en programación…",
   "appRecordingScheduled": "Grabación programada: {title}",
   "@appRecordingScheduled": {

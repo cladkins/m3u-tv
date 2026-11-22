@@ -12,6 +12,8 @@
   "navMore": "More",
   "notificationsDesktopOpen": "Open",
   "appBackToExit": "Press back again to exit",
+  "appDeepLinkNotFoundTitle": "Couldn't open link",
+  "appDeepLinkNotFoundBody": "This channel or title isn't in your current playlist.",
   "appRecordingScheduling": "Recording is being scheduled…",
   "appRecordingScheduled": "Recording scheduled: {title}",
   "@appRecordingScheduled": {

@@ -42,6 +42,9 @@ import UIKit
         if let registrar = registry.registrar(forPlugin: "NowPlayingPlugin") {
             nowPlayingPlugin = NowPlayingPlugin(messenger: registrar.messenger())
         }
+        if let registrar = registry.registrar(forPlugin: "DeepLinkChannel") {
+            DeepLinkChannel.shared.attach(messenger: registrar.messenger())
+        }
         if let registrar = registry.registrar(forPlugin: "AppScenesChannel") {
             // Whether the phone's window is up for the full-screen player.
             // CarPlay plays through its own audio-only player otherwise: iOS
@@ -106,5 +109,44 @@ import UIKit
             binaryMessenger: messenger
         )
         eventChannel.setStreamHandler(plugin)
+    }
+}
+
+/// Hands `m3utv://` links the system opened the app with to Dart (see
+/// lib/services/deep_link_service.dart).
+///
+/// Channel: `m3u_tv/deep_link`
+///   Dart -> native: `getInitialLink` (a link Dart has not taken yet, once)
+///   Native -> Dart: `onLink` (url)
+final class DeepLinkChannel {
+    static let shared = DeepLinkChannel()
+
+    private var channel: FlutterMethodChannel?
+    private var pending: String?
+
+    func attach(messenger: FlutterBinaryMessenger) {
+        let channel = FlutterMethodChannel(name: "m3u_tv/deep_link", binaryMessenger: messenger)
+        channel.setMethodCallHandler { [weak self] call, result in
+            guard call.method == "getInitialLink" else {
+                result(FlutterMethodNotImplemented)
+                return
+            }
+            result(self?.pending)
+            self?.pending = nil
+        }
+        self.channel = channel
+    }
+
+    /// A link can arrive before the engine exists or before Dart listens
+    /// (a cold start), so it is kept until Dart has taken it either way.
+    func open(_ url: URL) {
+        guard url.scheme?.lowercased() == "m3utv" else { return }
+        let link = url.absoluteString
+        pending = link
+        channel?.invokeMethod("onLink", arguments: link) { [weak self] reply in
+            if let reply = reply as? NSObject, reply == FlutterMethodNotImplemented { return }
+            if reply is FlutterError { return }
+            if self?.pending == link { self?.pending = nil }
+        }
     }
 }

@@ -12,6 +12,8 @@
   "navMore": "更多",
   "notificationsDesktopOpen": "打开",
   "appBackToExit": "再次按返回键退出",
+  "appDeepLinkNotFoundTitle": "无法打开链接",
+  "appDeepLinkNotFoundBody": "当前播放列表中没有此频道或影片。",
   "appRecordingScheduling": "正在安排录制…",
   "appRecordingScheduled": "录制已安排：{title}",
   "@appRecordingScheduled": {

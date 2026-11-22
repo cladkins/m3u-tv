@@ -380,6 +380,36 @@ Simkl uses a public client id for its device login. The app ships with a default
    flutter run --dart-define=SIMKL_CLIENT_ID=your_client_id -d <device-id>
    ```
 
+## Deep links
+
+The app registers the `m3utv` URL scheme on tvOS, iOS and Android. A play link opens the app and starts playback, using the ids the Xtream API returns:
+
+| Link | Result |
+| --- | --- |
+| `m3utv://play?type=live&stream_id=16777` | Plays the live channel |
+| `m3utv://play?type=vod&stream_id=42` | Plays the movie (with the resume prompt when progress exists) |
+| `m3utv://play?type=series&stream_id=7` | Opens the series details (`series_id` works too) |
+
+`type` defaults to `live`. The id must exist in the active playlist, otherwise the app shows a "Couldn't open link" toast. Native code hands the URL to Dart over the `m3u_tv/deep_link` channel (`lib/services/deep_link_service.dart`), and `AppShell` resolves it against the catalog.
+
+Test commands:
+
+```bash
+adb shell am start -a android.intent.action.VIEW -d "m3utv://play?type=live\&stream_id=16777"
+xcrun simctl openurl booted "m3utv://play?type=live&stream_id=16777"
+```
+
+Home Assistant (Apple TV integration):
+
+```yaml
+action: media_player.play_media
+target:
+  entity_id: media_player.apple_tv
+data:
+  media_content_type: url
+  media_content_id: "m3utv://play?type=live&stream_id=16777"
+```
+
 ## Developer dart-defines
 
 These compile-time flags are for local development and debugging. Pass them via `--dart-define` - they default to off and are never required for normal builds.

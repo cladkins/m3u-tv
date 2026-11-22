@@ -1210,6 +1210,59 @@ void main() {
     },
   );
 
+  group('m3utv:// deep links', () {
+    Future<void> openLink(WidgetTester tester, String link) async {
+      await tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        'm3u_tv/deep_link',
+        const StandardMethodCodec().encodeMethodCall(
+          MethodCall('onLink', link),
+        ),
+        (_) {},
+      );
+      // The catalog lookup is real database I/O.
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await _pumpAppFrame(tester);
+    }
+
+    Future<void> pumpConnectedApp(WidgetTester tester) async {
+      final appState = _testAppState(xtreamService: _NavigationXtreamService());
+      addTearDown(appState.dispose);
+      await appState.connectXtream(
+        const UserCredentials(
+          server: 'http://example.com',
+          username: 'user',
+          password: 'pass',
+        ),
+      );
+      await tester.pumpWidget(
+        _TestApp(deviceType: DeviceType.tv, appState: appState),
+      );
+      await _pumpAppFrame(tester);
+    }
+
+    testWidgets('a live link plays the channel', (tester) async {
+      await pumpConnectedApp(tester);
+
+      await openLink(tester, 'm3utv://play?type=live&stream_id=101');
+
+      expect(find.text('Player route: Route News'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+
+    testWidgets('a link to an unknown channel says so', (tester) async {
+      await pumpConnectedApp(tester);
+
+      await openLink(tester, 'm3utv://play?type=live&stream_id=999999');
+
+      expect(find.textContaining('Player route:'), findsNothing);
+      expect(find.text("Couldn't open link"), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump(const Duration(seconds: 30));
+    });
+  });
+
   testWidgets('Router back dispatch closes active live player', (
     tester,
   ) async {

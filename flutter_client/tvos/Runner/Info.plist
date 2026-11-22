@@ -11,6 +11,19 @@
     <string>vnd.youtube</string>
     <string>youtubetv</string>
   </array>
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleTypeRole</key>
+      <string>Viewer</string>
+      <key>CFBundleURLName</key>
+      <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>m3utv</string>
+      </array>
+    </dict>
+  </array>
   <key>CFBundleDisplayName</key>
   <string>M3U TV</string>
   <key>CFBundleExecutable</key>
@@ -66,7 +79,7 @@
           <key>UISceneConfigurationName</key>
           <string>flutter</string>
           <key>UISceneDelegateClassName</key>
-          <string>FlutterSceneDelegate</string>
+          <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
           <key>UISceneStoryboardFile</key>
           <string>Main</string>
         </dict>

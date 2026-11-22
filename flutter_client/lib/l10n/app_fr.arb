@@ -12,6 +12,8 @@
   "navMore": "Plus",
   "notificationsDesktopOpen": "Ouvrir",
   "appBackToExit": "Appuyez à nouveau sur Retour pour quitter",
+  "appDeepLinkNotFoundTitle": "Impossible d'ouvrir le lien",
+  "appDeepLinkNotFoundBody": "Cette chaîne ou ce titre ne figure pas dans votre playlist actuelle.",
   "appRecordingScheduling": "Enregistrement en cours de programmation…",
   "appRecordingScheduled": "Enregistrement programmé : {title}",
   "@appRecordingScheduled": {

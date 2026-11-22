@@ -36,7 +36,8 @@ import 'package:m3u_tv/providers/app_providers.dart';
 import 'package:m3u_tv/services/aiostreams_api_service.dart';
 import 'package:m3u_tv/services/app_state_controller.dart';
 import 'package:m3u_tv/services/catalog_db/catalog_codec.dart'
-    show kCatalogKindSeries, kCatalogKindVod;
+    show kCatalogKindLive, kCatalogKindSeries, kCatalogKindVod;
+import 'package:m3u_tv/services/deep_link_service.dart';
 import 'package:m3u_tv/services/desktop_fullscreen_service.dart';
 import 'package:m3u_tv/services/desktop_notification_presenter.dart';
 import 'package:m3u_tv/services/domain_models.dart';
@@ -234,6 +235,7 @@ class AppShellState extends ConsumerState<AppShell>
   // they invoke onChannelSelect.
   ChannelContext _playerChannelContext = ListChannelContext.empty;
   int _channelSwitchGeneration = 0;
+  int _deepLinkGeneration = 0;
 
   final List<FocusNode> _sidebarFocusNodes = [];
   final FocusScopeNode _contentFocusNode = FocusScopeNode();
@@ -279,6 +281,7 @@ class AppShellState extends ConsumerState<AppShell>
     unawaited(_appState.ensureBooted());
     CarPlayController.instance?.onPlayChannel = _playCarPlayChannel;
     AndroidAutoBridge.instance?.onPlayChannel = _playCarPlayChannel;
+    unawaited(DeepLinkService.instance.start(_onDeepLink));
     _visibleRoutes = _mainRoutes;
     _initSidebarFocusNodes();
     WidgetsBinding.instance.addPostFrameCallback(
@@ -589,6 +592,7 @@ class AppShellState extends ConsumerState<AppShell>
     }
     _contentFocusNode.dispose();
     _sidebarScopeNode.dispose();
+    DeepLinkService.instance.stop(_onDeepLink);
     final carPlay = CarPlayController.instance;
     if (carPlay?.onPlayChannel == _playCarPlayChannel) {
       carPlay!.onPlayChannel = null;
@@ -1134,6 +1138,108 @@ class AppShellState extends ConsumerState<AppShell>
     if (_playerLiveChannel?.id == channel.id && !_playerHasFailed) return;
     _openChannel(channel);
     runFrameIfBackgrounded();
+  }
+
+  void _onDeepLink(DeepLinkRequest link) => unawaited(_openDeepLink(link));
+
+  /// Plays what an `m3utv://play` link names. It may arrive at launch,
+  /// before the source has booted, or with the app in the background.
+  Future<void> _openDeepLink(DeepLinkRequest link) async {
+    // Rapid links each resolve asynchronously; only the latest opens.
+    final generation = ++_deepLinkGeneration;
+    bool superseded() => !mounted || generation != _deepLinkGeneration;
+
+    await _waitWhileAppState(() => _appState.isBootstrapping);
+    if (superseded() || !_appState.isConfigured) return;
+    var item = await _resolveDeepLink(link);
+    if (item == null && !superseded() && _appState.isLoadingContent) {
+      // First sync after sign-in: the catalog is still being written.
+      await _waitWhileAppState(() => _appState.isLoadingContent);
+      if (superseded()) return;
+      item = await _resolveDeepLink(link);
+    }
+    if (!mounted || generation != _deepLinkGeneration) return;
+    if (item == null) {
+      final l = AppLocalizations.of(context);
+      _enqueueNotificationToast(
+        TvNotificationItem(
+          id: 'deep-link-not-found-${link.type.name}-${link.id}',
+          channel: 'general',
+          title: l.appDeepLinkNotFoundTitle,
+          body: l.appDeepLinkNotFoundBody,
+          status: 'warning',
+        ),
+      );
+      runFrameIfBackgrounded();
+      return;
+    }
+
+    final playing = _playerArgs;
+    if (item is Channel &&
+        playing?.type == 'live' &&
+        _playerLiveChannel?.id == item.id &&
+        !_playerHasFailed) {
+      return;
+    }
+    // Live to live reuses the open player, like channel up/down. Anything
+    // else starts from a closed one.
+    if (playing != null && !(item is Channel && playing.type == 'live')) {
+      await _closePlayer();
+      if (superseded()) return;
+    }
+    switch (item) {
+      case Channel():
+        _openChannel(item);
+      case VodItem():
+        _openPlayerFromActions(
+          PlayerArgs(
+            streamUrl: item.streamUrl,
+            title: item.name,
+            type: 'vod',
+            streamId: item.id,
+            metadata: <String, Object?>{
+              'title': item.name,
+              'container_extension': item.containerExtension,
+              if (item.logoUrl != null) 'poster_url': item.logoUrl,
+            },
+          ),
+        );
+      case Series():
+        _openSeries(item);
+    }
+    runFrameIfBackgrounded();
+  }
+
+  Future<Object?> _resolveDeepLink(DeepLinkRequest link) {
+    final catalog = _appState.catalogRepository;
+    return switch (link.type) {
+      DeepLinkContentType.live => catalog.activeItemById<Channel>(
+        kind: kCatalogKindLive,
+        id: link.id,
+      ),
+      DeepLinkContentType.vod => catalog.activeItemById<VodItem>(
+        kind: kCatalogKindVod,
+        id: link.id,
+      ),
+      DeepLinkContentType.series => catalog.activeItemById<Series>(
+        kind: kCatalogKindSeries,
+        id: link.id,
+      ),
+    };
+  }
+
+  /// Completes once [busy] is false, checked on each app state change.
+  Future<void> _waitWhileAppState(bool Function() busy) {
+    if (!busy()) return Future<void>.value();
+    final done = Completer<void>();
+    void check() {
+      if (!busy() && !done.isCompleted) done.complete();
+    }
+
+    _appState.addListener(check);
+    return done.future
+        .timeout(const Duration(minutes: 2), onTimeout: () {})
+        .whenComplete(() => _appState.removeListener(check));
   }
 
   void _openNextChannel() => unawaited(_switchChannel(1));

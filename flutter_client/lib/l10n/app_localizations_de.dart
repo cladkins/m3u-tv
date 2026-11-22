@@ -45,6 +45,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get appBackToExit => 'Zum Beenden erneut Zurück drücken';
 
   @override
+  String get appDeepLinkNotFoundTitle => 'Link konnte nicht geöffnet werden';
+
+  @override
+  String get appDeepLinkNotFoundBody =>
+      'Dieser Sender oder Titel ist nicht in Ihrer aktuellen Playlist.';
+
+  @override
   String get appRecordingScheduling => 'Aufnahme wird geplant…';
 
   @override
